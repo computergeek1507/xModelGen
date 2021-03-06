@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxFrame" name="xModelGenFrame">
+		<title>XModel Gen</title>
+		<id_arg>0</id_arg>
+		<handler function="OnClose" entry="EVT_CLOSE" />
+		<handler function="OnResize" entry="EVT_SIZE" />
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+					<sashgravity>0.200000</sashgravity>
+					<minpanesize>10</minpanesize>
+					<orientation>vertical</orientation>
+					<minsize>50,50</minsize>
+					<object class="wxListBox" name="ID_LISTBOX_NODES" variable="ListBoxNodes" member="yes">
+						<default>-1</default>
+						<pos>-38,2</pos>
+						<handler function="OnListBoxNodesDClick" entry="EVT_LISTBOX_DCLICK" />
+					</object>
+					<object class="wxPanel" name="ID_PICTURE_VIEW" subclass="CVPictureView" variable="PanelPictureView" member="yes">
+						<pos>195,31</pos>
+						<size>100,100</size>
+						<handler function="OnPanelPictureViewLeftDown" entry="EVT_LEFT_DOWN" />
+						<handler function="OnPanelPictureViewLeftUp" entry="EVT_LEFT_UP" />
+						<handler function="OnPanelPictureViewLeftDClick" entry="EVT_LEFT_DCLICK" />
+						<handler function="OnPanelPictureViewRightDown" entry="EVT_RIGHT_DOWN" />
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_SELECT" variable="ButtonSelect" member="yes">
+							<label>Set Node Template</label>
+							<handler function="OnButtonSelectClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_SPACING" variable="SliderSpacing" member="yes">
+							<value>4</value>
+							<min>1</min>
+							<max>20</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+		<object class="wxStatusBar" name="ID_STATUSBAR1" variable="StatusBar1" member="yes">
+			<fields>1</fields>
+			<widths>-10</widths>
+			<styles>wxSB_NORMAL</styles>
+		</object>
+		<object class="wxMenuBar" variable="MenuBar1" member="yes">
+			<object class="wxMenu" variable="Menu1" member="yes">
+				<label>&amp;File</label>
+				<object class="wxMenuItem" name="ID_MNU_LOAD_PICTURE" variable="MenuItem_Load_Picture" member="yes">
+					<label>Load Picture</label>
+					<handler function="OnMenuItem_Load_PictureSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_LOAD_DXF" variable="MenuItem_Load_Dxf" member="yes">
+					<label>Load DXF File</label>
+					<handler function="OnMenuItem_Load_DxfSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_AUTO_WIRE" variable="MenuItem_Auto_Wire" member="yes">
+					<label>Start Auto Wire</label>
+					<handler function="OnMenuItem_Auto_WireSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_SAVE_XMODEL" variable="MenuItem_Save_XModel" member="yes">
+					<label>Save xModel</label>
+					<handler function="OnMenuItem_Save_XModelSelected" entry="EVT_MENU" />
+				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="ID_MNU_QUIT" variable="MenuItem_Quit" member="yes">
+					<label>Quit</label>
+					<accel>Alt-F4</accel>
+					<help>Quit the application</help>
+					<handler function="OnQuit" entry="EVT_MENU" />
+				</object>
+			</object>
+			<object class="wxMenu" variable="Menu2" member="yes">
+				<label>&amp;Help</label>
+				<object class="wxMenuItem" name="ID_MNU_ABOUT" variable="MenuItem_About" member="yes">
+					<label>About</label>
+					<accel>F1</accel>
+					<handler function="OnAbout" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_LOG" variable="MenuItem_Log" member="yes">
+					<label>View Log</label>
+					<handler function="OnMenuItem_LogSelected" entry="EVT_MENU" />
+				</object>
+			</object>
+		</object>
+	</object>
+</wxsmith>
