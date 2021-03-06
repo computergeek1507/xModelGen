@@ -15,10 +15,25 @@
 					<minpanesize>10</minpanesize>
 					<orientation>vertical</orientation>
 					<minsize>50,50</minsize>
-					<object class="wxListBox" name="ID_LISTBOX_NODES" variable="ListBoxNodes" member="yes">
-						<default>-1</default>
+					<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
 						<pos>-38,2</pos>
-						<handler function="OnListBoxNodesDClick" entry="EVT_LISTBOX_DCLICK" />
+						<object class="notebookpage">
+							<object class="wxListBox" name="ID_LISTBOX_NODES" variable="ListBoxNodes" member="yes">
+								<default>-1</default>
+								<pos>28,36</pos>
+							</object>
+							<label>Nodes</label>
+							<selected>1</selected>
+						</object>
+						<object class="notebookpage">
+							<object class="Custom" name="ID_PROPERTY_GRID_VISION" subclass="wxPropertyGrid" variable="PropertyGrid_Vision" member="yes">
+								<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
+								<include_file>wx/propgrid/propgrid.h</include_file>
+								<style>wxPG__DEFAULT__STYLE</style>
+								<pos>72,36</pos>
+							</object>
+							<label>Vision Settings</label>
+						</object>
 					</object>
 					<object class="wxPanel" name="ID_PICTURE_VIEW" subclass="CVPictureView" variable="PanelPictureView" member="yes">
 						<pos>195,31</pos>

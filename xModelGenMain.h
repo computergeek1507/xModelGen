@@ -26,7 +26,9 @@
 #include <wx/frame.h>
 #include <wx/listbox.h>
 #include <wx/menu.h>
+#include <wx/notebook.h>
 #include <wx/panel.h>
+#include <wx/propgrid/propgrid.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
 #include <wx/splitter.h>
@@ -92,6 +94,8 @@ private:
 
         //(*Identifiers(xModelGenFrame)
         static const long ID_LISTBOX_NODES;
+        static const long ID_PROPERTY_GRID_VISION;
+        static const long ID_NOTEBOOK1;
         static const long ID_PICTURE_VIEW;
         static const long ID_SPLITTERWINDOW1;
         static const long ID_BUTTON_SELECT;
@@ -122,6 +126,8 @@ private:
         wxMenuItem* MenuItem_Log;
         wxMenuItem* MenuItem_Quit;
         wxMenuItem* MenuItem_Save_XModel;
+        wxNotebook* Notebook1;
+        wxPropertyGrid* PropertyGrid_Vision;
         wxSlider* SliderSpacing;
         wxSplitterWindow* SplitterWindow1;
         wxStatusBar* StatusBar1;

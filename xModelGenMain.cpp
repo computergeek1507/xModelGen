@@ -89,6 +89,8 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 
 //(*IdInit(xModelGenFrame)
 const long xModelGenFrame::ID_LISTBOX_NODES = wxNewId();
+const long xModelGenFrame::ID_PROPERTY_GRID_VISION = wxNewId();
+const long xModelGenFrame::ID_NOTEBOOK1 = wxNewId();
 const long xModelGenFrame::ID_PICTURE_VIEW = wxNewId();
 const long xModelGenFrame::ID_SPLITTERWINDOW1 = wxNewId();
 const long xModelGenFrame::ID_BUTTON_SELECT = wxNewId();
@@ -129,9 +131,13 @@ xModelGenFrame::xModelGenFrame(wxWindow* parent, wxWindowID id)
     SplitterWindow1->SetMinSize(wxSize(50,50));
     SplitterWindow1->SetMinimumPaneSize(10);
     SplitterWindow1->SetSashGravity(0.2);
-    ListBoxNodes = new wxListBox(SplitterWindow1, ID_LISTBOX_NODES, wxPoint(-38,2), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_NODES"));
+    Notebook1 = new wxNotebook(SplitterWindow1, ID_NOTEBOOK1, wxPoint(-38,2), wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
+    ListBoxNodes = new wxListBox(Notebook1, ID_LISTBOX_NODES, wxPoint(28,36), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_NODES"));
+    PropertyGrid_Vision = new wxPropertyGrid(Notebook1,ID_PROPERTY_GRID_VISION,wxPoint(72,36),wxDefaultSize,wxPG_DEFAULT_STYLE,wxDefaultValidator,_T("ID_PROPERTY_GRID_VISION"));
+    Notebook1->AddPage(ListBoxNodes, _("Nodes"), true);
+    Notebook1->AddPage(PropertyGrid_Vision, _("Vision Settings"), false);
     PanelPictureView = new CVPictureView(SplitterWindow1, ID_PICTURE_VIEW, wxPoint(195,31), wxSize(100,100), wxTAB_TRAVERSAL, _T("ID_PICTURE_VIEW"));
-    SplitterWindow1->SplitVertically(ListBoxNodes, PanelPictureView);
+    SplitterWindow1->SplitVertically(Notebook1, PanelPictureView);
     FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
     BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
     ButtonSelect = new wxButton(this, ID_BUTTON_SELECT, _("Set Node Template"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT"));
@@ -171,7 +177,6 @@ xModelGenFrame::xModelGenFrame(wxWindow* parent, wxWindowID id)
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
-    Connect(ID_LISTBOX_NODES,wxEVT_COMMAND_LISTBOX_DOUBLECLICKED,(wxObjectEventFunction)&xModelGenFrame::OnListBoxNodesDClick);
     PanelPictureView->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&xModelGenFrame::OnPanelPictureViewLeftDown,0,this);
     PanelPictureView->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&xModelGenFrame::OnPanelPictureViewLeftUp,0,this);
     PanelPictureView->Connect(wxEVT_LEFT_DCLICK,(wxObjectEventFunction)&xModelGenFrame::OnPanelPictureViewLeftDClick,0,this);
