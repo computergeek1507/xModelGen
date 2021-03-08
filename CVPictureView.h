@@ -12,6 +12,7 @@
 #include <vector>
 
 // external classes
+class xModelGenFrame;
 
 class CVPictureView : public wxWindow
 {
@@ -27,17 +28,11 @@ public:
 
     void FindTemplateInPic();
 
-    void ClearPoints() { m_foundPoints.clear(); }
-    void AddPoint( wxPoint point ) { m_foundPoints.emplace_back( point ); }
-    void AddPoints( std::vector< wxPoint > points ) 
-    { 
-        //m_foundPoints.emplace_back( points ); 
-        m_foundPoints.insert( m_foundPoints.end(), points.begin(), points.end() );
-    }
-
 	void Draw( wxDC& dc );
 
 private:
+    xModelGenFrame* m_mainFrame;
+
 	wxImage m_image;
     std::string m_filePath;
 
@@ -48,16 +43,6 @@ private:
 	int m_nHeight;
     double m_scale{ 1.0 };
 
-	int m_blur{11};
-    int m_threshold{200};
-    int m_erode{2};
-    int m_dilate{4};
-    int m_greySize{1};
-    int m_focus{ 125 };
-
-	std::vector< wxPoint > m_foundPoints;
-    std::vector< wxPoint > m_skipPoints;
-
 	wxMutex  imageMutex_;
 
     wxImage wx_from_mat( cv::Mat& img );
@@ -66,12 +51,7 @@ private:
     void OnSize( wxSizeEvent& even );
 
 public:
-    void SetBlur( int blur ) { m_blur = blur; }
-    void SetThreshold( int threshold ) { m_threshold = threshold; }
-    void SetErode( int erode ) { m_erode = erode; }
-    void SetDilate( int dilate ) { m_dilate = dilate; }
-    void SetGreySize( int greySize ) { m_greySize = greySize; }
-    void SetFocus( int focus );
+
 
 protected:
 

@@ -133,7 +133,7 @@ xModelGenFrame::xModelGenFrame(wxWindow* parent, wxWindowID id)
     SplitterWindow1->SetSashGravity(0.2);
     Notebook1 = new wxNotebook(SplitterWindow1, ID_NOTEBOOK1, wxPoint(-38,2), wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
     ListBoxNodes = new wxListBox(Notebook1, ID_LISTBOX_NODES, wxPoint(28,36), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_NODES"));
-    PropertyGrid_Vision = new wxPropertyGrid(Notebook1,ID_PROPERTY_GRID_VISION,wxPoint(72,36),wxDefaultSize,wxPG_DEFAULT_STYLE,wxDefaultValidator,_T("ID_PROPERTY_GRID_VISION"));
+    PropertyGrid_Vision = new wxPropertyGrid(Notebook1,ID_PROPERTY_GRID_VISION,wxPoint(72,36),wxDefaultSize,wxPG_DEFAULT_STYLE,_T("ID_PROPERTY_GRID_VISION"));
     Notebook1->AddPage(ListBoxNodes, _("Nodes"), true);
     Notebook1->AddPage(PropertyGrid_Vision, _("Vision Settings"), false);
     PanelPictureView = new CVPictureView(SplitterWindow1, ID_PICTURE_VIEW, wxPoint(195,31), wxSize(100,100), wxTAB_TRAVERSAL, _T("ID_PICTURE_VIEW"));
@@ -208,7 +208,25 @@ xModelGenFrame::xModelGenFrame(wxWindow* parent, wxWindowID id)
 
     logger_base.debug("Loading...");
 
+    wxConfigBase* config = wxConfigBase::Get();
+
+    wxPGProperty* prop = PropertyGrid_Vision->Append( new wxIntProperty( "Match Threshold", "MatchThreshold", config->ReadLong("MatchThreshold", 80) ) );
+    prop->SetAttribute( "Min", 0 );
+    prop->SetAttribute( "Max", 100 );
+    prop->SetEditor( "SpinCtrl" );
+
+    //PropertyGrid_Vision->Append( new wxBoolProperty( "Fill", "BkgFill", false ) )->SetAttribute( "UseCheckbox", 1 );
+
+    PropertyGrid_Vision->Connect( wxEVT_PG_CHANGED, (wxObjectEventFunction)&xModelGenFrame::OnPropertyGridChange, 0, this );
+    //PropertyGrid_Vision->Connect( wxEVT_PG_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridSelection, 0, this );
+    //PropertyGrid_Vision->Connect( wxEVT_PG_ITEM_COLLAPSED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridItemCollapsed, 0, this );
+    //PropertyGrid_Vision->Connect( wxEVT_PG_ITEM_EXPANDED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridItemExpanded, 0, this );
+    //PropertyGrid_Vision->Connect( wxEVT_PG_RIGHT_CLICK, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridRightClick, 0, this );
+    //PropertyGrid_Vision->SetValidationFailureBehavior( wxPG_VFB_MARK_CELL | wxPG_VFB_BEEP );
+
     ValidateWindow();
+
+
 }
 
 
@@ -632,4 +650,15 @@ void xModelGenFrame::OnPanelPictureViewLeftDClick(wxMouseEvent& event)
 
 void xModelGenFrame::OnPanelPictureViewRightDown(wxMouseEvent& event)
 {
+}
+
+void xModelGenFrame::OnPropertyGridChange( wxPropertyGridEvent& event )
+{
+    wxString name    = event.GetPropertyName();
+    //updatingProperty = true;
+    if( name == "MatchThreshold" ) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write( "MatchThreshold", event.GetValue().GetLong() );
+        
+    }
 }

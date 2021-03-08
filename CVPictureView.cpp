@@ -10,9 +10,12 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/features2d.hpp>
 
+#include "xModelGenMain.h"
+
 
 // main header
 #include "CVPictureView.h"
+#include <wx/confbase.h>
 
 // implement message map
 BEGIN_EVENT_TABLE(CVPictureView, wxWindow)
@@ -21,7 +24,8 @@ BEGIN_EVENT_TABLE(CVPictureView, wxWindow)
 END_EVENT_TABLE()
 
 CVPictureView::CVPictureView( wxWindow* frame, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, wxString const& name ) :
-    wxWindow( frame, id, pos, size, wxSIMPLE_BORDER )
+    wxWindow( frame, id, pos, size, wxSIMPLE_BORDER ),
+    m_mainFrame( (xModelGenFrame*)frame )
 {
 	// set my canvas width/height
 	m_nWidth = size.GetWidth();
@@ -61,12 +65,6 @@ void CVPictureView::SaveTemplate( wxPoint start, wxPoint end )
     m_template = image_roi.clone();
 
     DrawPicture();
-}
-
-void CVPictureView::SetFocus( int focus )
-{
-    m_focus = focus;
-    //m_pCamera.set( cv::CAP_PROP_FOCUS, focus );
 }
 
 void CVPictureView::OnPaint(wxPaintEvent &event)
@@ -119,7 +117,12 @@ void CVPictureView::FindTemplateInPic()
         int size = ( ( m_template.cols + m_template.rows ) / 4 ) * 2 + 1; //force size to be odd
         adaptiveThreshold( res, res, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, size, -128 );
         //imshow( "result_thresh", res );
-        double threshold = 0.8;
+
+         wxConfigBase* config = wxConfigBase::Get();
+
+        int iThreshold = config->ReadLong( "MatchThreshold", 80 );
+
+        double threshold = iThreshold/100.0;
 
         for( int i =0; i < 2000; ++i ) {
             double minval, maxval;
@@ -143,42 +146,15 @@ void CVPictureView::DrawPicture()
     }
     cv::Mat ogFrame = m_frame.clone();
 
-    int nCamWidth  = ogFrame.cols;
-    int nCamHeight = ogFrame.rows;
-
-    if( !m_template.empty() ) {
-    
-        cv::Mat res_32f( ogFrame.rows - m_template.rows + 1, ogFrame.cols - m_template.cols + 1, CV_32FC1 );
-        cv::matchTemplate( ogFrame, m_template, res_32f, cv::TM_CCOEFF_NORMED );
-
-        cv::Mat res;
-        res_32f.convertTo( res, CV_8U, 255.0 );
-
-        int size = ( ( m_template.cols + m_template.rows ) / 4 ) * 2 + 1; //force size to be odd
-        adaptiveThreshold( res, res, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, size, -128 );
-        double threshold = 0.8;
-
-        for( ;; ) {
-            double minval, maxval;
-            cv::Point minloc, maxloc;
-            minMaxLoc( res, &minval, &maxval, &minloc, &maxloc );
-
-            if( maxval >= threshold ) {
-                rectangle( ogFrame, maxloc, cv::Point( maxloc.x + m_template.cols, maxloc.y + m_template.rows ), CV_RGB( 0, 255, 0 ), 2 );
-                floodFill( res, maxloc, 0 ); //mark drawn blob
-            } else {
-                break;
-            }
-        }
-    }
-
-
+    //int nCamWidth  = ogFrame.cols;
+    //int nCamHeight = ogFrame.rows;
+    /*
     if( !m_foundPoints.empty() ) {
         for( auto const& key : m_foundPoints ) {
             cv::drawMarker( ogFrame, cv::Point( key.x, key.y ),
                             cv::Scalar( 0, 0, 255 ) );
         }
-    }
+    }*/
 
     wxImage tmpImage = wx_from_mat( ogFrame );
     //wxImage tmpImage( nCamWidth, nCamHeight, ogFrame.data, true );
@@ -209,6 +185,8 @@ wxImage CVPictureView::wx_from_mat( cv::Mat& img )
     for( long i = 0; i < imsize; i++ ) {
         d[ i ] = s[ i ];
     }
+
+    //wxImage wx( im2.cols, im2.rows, im2.data, false );
     return wx;
 }
 

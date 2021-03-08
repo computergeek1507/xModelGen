@@ -27,7 +27,7 @@
 						</object>
 						<object class="notebookpage">
 							<object class="Custom" name="ID_PROPERTY_GRID_VISION" subclass="wxPropertyGrid" variable="PropertyGrid_Vision" member="yes">
-								<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
+								<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),$(NAME));</creating_code>
 								<include_file>wx/propgrid/propgrid.h</include_file>
 								<style>wxPG__DEFAULT__STYLE</style>
 								<pos>72,36</pos>

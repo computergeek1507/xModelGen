@@ -81,6 +81,7 @@ private:
 
         void OnTreeRClick(wxTreeListEvent& event);
         void OnPopup(wxCommandEvent& event);
+        void OnPropertyGridChange( wxPropertyGridEvent& event );
 
         void Load_Dxf_Items( std::string const& filePath );
         void DrawGrid();
