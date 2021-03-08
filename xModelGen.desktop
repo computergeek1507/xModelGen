@@ -2,8 +2,8 @@
 Encoding=UTF-8
 Version=1.0
 Type=Application
-Exec=xLights -xschedule %f
-Comment=Lighting control and sequencing - Scheduler
+Exec=xLights -xModelGen %f
+Comment=Lighting control and sequencing - ModelGen
 Name=xSchedule
 Terminal=false
 Icon=xschedule
