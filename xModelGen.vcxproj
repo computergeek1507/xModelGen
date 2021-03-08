@@ -80,8 +80,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\opencv\build\include\;dxflib\src;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);../xLights/ffmpeg-dev/include;..\include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows;GL;../xlights/ffmpeg-dev/lib</LibraryPath>
+    <IncludePath>..\..\opencv\build\include\;dxflib\src;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\include</IncludePath>
+    <LibraryPath>..\..\opencv\build\x64\vc15\bin\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\lib\windows;GL;../xlights/ffmpeg-dev/lib</LibraryPath>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

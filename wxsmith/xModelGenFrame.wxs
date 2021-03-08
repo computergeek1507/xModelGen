@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xModelGenFrame">
-		<title>XModel Gen</title>
+		<title>xModel Gen</title>
+		<size>400,400</size>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
 		<handler function="OnResize" entry="EVT_SIZE" />
@@ -11,6 +12,7 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+					<sashpos>100</sashpos>
 					<sashgravity>0.200000</sashgravity>
 					<minpanesize>10</minpanesize>
 					<orientation>vertical</orientation>
@@ -18,18 +20,85 @@
 					<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
 						<pos>-38,2</pos>
 						<object class="notebookpage">
-							<object class="wxListBox" name="ID_LISTBOX_NODES" variable="ListBoxNodes" member="yes">
-								<default>-1</default>
-								<pos>28,36</pos>
+							<object class="wxPanel" name="ID_PANEL_NODES" variable="PanelNodes" member="yes">
+								<pos>21,34</pos>
+								<object class="wxBoxSizer" variable="BoxSizer2" member="no">
+									<orient>wxVERTICAL</orient>
+									<object class="sizeritem">
+										<object class="wxListBox" name="ID_LISTBOX_NODES" variable="ListBoxNodes" member="yes">
+											<default>-1</default>
+											<handler function="OnListBoxNodesDClick" entry="EVT_LISTBOX_DCLICK" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_NODES" variable="StaticTextNodes" member="yes">
+											<label></label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_SELECT" variable="ButtonSelect" member="yes">
+											<label>Set Node Template</label>
+											<handler function="OnButtonSelectClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+									</object>
+								</object>
 							</object>
 							<label>Nodes</label>
 							<selected>1</selected>
 						</object>
 						<object class="notebookpage">
+							<object class="wxPanel" name="ID_PANEL_MANUAL_WIRING" variable="PanelManualWiring" member="yes">
+								<pos>11,15</pos>
+								<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX_ENABLE_WIRING" variable="CheckBoxEnableWiring" member="yes">
+											<label>Enable Manual Wiring</label>
+										</object>
+										<colspan>2</colspan>
+										<col>0</col>
+										<row>0</row>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+											<label>Node</label>
+										</object>
+										<col>0</col>
+										<row>1</row>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxSpinCtrl" name="ID_SPINCTRL_NEXT_NODE_NUMBER" variable="SpinCtrlNextNodeNumber" member="yes">
+											<value>1</value>
+											<min>1</min>
+											<max>2000</max>
+										</object>
+										<col>1</col>
+										<row>1</row>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+							</object>
+							<label>Manual Wiring</label>
+						</object>
+						<object class="notebookpage">
 							<object class="Custom" name="ID_PROPERTY_GRID_VISION" subclass="wxPropertyGrid" variable="PropertyGrid_Vision" member="yes">
 								<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),$(NAME));</creating_code>
 								<include_file>wx/propgrid/propgrid.h</include_file>
-								<style>wxPG__DEFAULT__STYLE</style>
+								<style>wxPG__SPLITTER__AUTO__CENTER | wxPG__DEFAULT__STYLE</style>
 								<pos>72,36</pos>
 							</object>
 							<label>Vision Settings</label>
@@ -48,37 +117,6 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
-			<object class="sizeritem">
-				<object class="wxBoxSizer" variable="BoxSizer1" member="no">
-					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON_SELECT" variable="ButtonSelect" member="yes">
-							<label>Set Node Template</label>
-							<handler function="OnButtonSelectClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_SPACING" variable="SliderSpacing" member="yes">
-							<value>4</value>
-							<min>1</min>
-							<max>20</max>
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="spacer">
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
 		</object>
 		<object class="wxStatusBar" name="ID_STATUSBAR1" variable="StatusBar1" member="yes">
 			<fields>1</fields>
@@ -91,10 +129,6 @@
 				<object class="wxMenuItem" name="ID_MNU_LOAD_PICTURE" variable="MenuItem_Load_Picture" member="yes">
 					<label>Load Picture</label>
 					<handler function="OnMenuItem_Load_PictureSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_LOAD_DXF" variable="MenuItem_Load_Dxf" member="yes">
-					<label>Load DXF File</label>
-					<handler function="OnMenuItem_Load_DxfSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MNU_AUTO_WIRE" variable="MenuItem_Auto_Wire" member="yes">
 					<label>Start Auto Wire</label>

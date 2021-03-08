@@ -7,16 +7,22 @@
  * License:
  **************************************************************/
 
+#include "xModelGenMain.h"
+#include "CVPictureView.h"
+
+#include "dxf/dxf_reader.h"
+
+#include "../xLights/osxMacUtils.h"
+#include "../xLights/xLightsVersion.h"
+#include "../xLights/UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 #include <wx/dcclient.h>
-
 #include <wx/dcmemory.h>
 #include <wx/dcscreen.h>
-
 #include <wx/dnd.h>
 #include <wx/dcbuffer.h>
-
-
 #include <wx/wx.h>
 #include <wx/msgdlg.h>
 #include <wx/config.h>
@@ -30,20 +36,10 @@
 #include <wx/dataview.h>
 #include <wx/dir.h>
 #include <wx/mimetype.h>
+#include <wx/propgrid/advprops.h>
 
-#include "xModelGenMain.h"
 
-#include "CVPictureView.h"
-
-#include "../xLights/xLightsVersion.h"
-#include "../xLights/osxMacUtils.h"
-
-#include "../xLights/UtilFunctions.h"
-
-#include <log4cpp/Category.hh>
-
-#include "dxf/dxf_reader.h"
-
+//std libraries
 #include <filesystem>
 #include <iostream>
 
@@ -57,6 +53,28 @@
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+
+class xlImageProperty : public wxImageFileProperty
+{
+public:
+    xlImageProperty( const wxString& label,
+                     const wxString& name,
+                     const wxString& value,
+                     const wxImage* img ) :
+        wxImageFileProperty( label, name, value )
+    {
+
+        if( img != nullptr ) {
+            m_pImage = new wxImage( *img );
+        }
+    }
+    virtual ~xlImageProperty() {}
+
+    void OnSetValue() override
+    {
+
+    }
+};
 
 wxPen __backgroundPen( *wxWHITE );
 wxBrush __backgroundBrush( *wxWHITE );
@@ -89,15 +107,19 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 
 //(*IdInit(xModelGenFrame)
 const long xModelGenFrame::ID_LISTBOX_NODES = wxNewId();
+const long xModelGenFrame::ID_STATICTEXT_NODES = wxNewId();
+const long xModelGenFrame::ID_BUTTON_SELECT = wxNewId();
+const long xModelGenFrame::ID_PANEL_NODES = wxNewId();
+const long xModelGenFrame::ID_CHECKBOX_ENABLE_WIRING = wxNewId();
+const long xModelGenFrame::ID_STATICTEXT1 = wxNewId();
+const long xModelGenFrame::ID_SPINCTRL_NEXT_NODE_NUMBER = wxNewId();
+const long xModelGenFrame::ID_PANEL_MANUAL_WIRING = wxNewId();
 const long xModelGenFrame::ID_PROPERTY_GRID_VISION = wxNewId();
 const long xModelGenFrame::ID_NOTEBOOK1 = wxNewId();
 const long xModelGenFrame::ID_PICTURE_VIEW = wxNewId();
 const long xModelGenFrame::ID_SPLITTERWINDOW1 = wxNewId();
-const long xModelGenFrame::ID_BUTTON_SELECT = wxNewId();
-const long xModelGenFrame::ID_SLIDER_SPACING = wxNewId();
 const long xModelGenFrame::ID_STATUSBAR1 = wxNewId();
 const long xModelGenFrame::ID_MNU_LOAD_PICTURE = wxNewId();
-const long xModelGenFrame::ID_MNU_LOAD_DXF = wxNewId();
 const long xModelGenFrame::ID_MNU_AUTO_WIRE = wxNewId();
 const long xModelGenFrame::ID_MNU_SAVE_XMODEL = wxNewId();
 const long xModelGenFrame::ID_MNU_QUIT = wxNewId();
@@ -106,6 +128,8 @@ const long xModelGenFrame::ID_MNU_LOG = wxNewId();
 //*)
 
 const long xModelGenFrame::ID_MNU_CLEAR = wxNewId();
+const long xModelGenFrame::ID_MNU_CLEAR_SELECTION = wxNewId();
+const long xModelGenFrame::ID_MNU_ADD_NODE = wxNewId();
 
 //wxDEFINE_EVENT(EVT_SCANPROGRESS, wxCommandEvent);
 
@@ -120,10 +144,12 @@ xModelGenFrame::xModelGenFrame(wxWindow* parent, wxWindowID id)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     //(*Initialize(xModelGenFrame)
-    wxBoxSizer* BoxSizer1;
+    wxBoxSizer* BoxSizer2;
     wxFlexGridSizer* FlexGridSizer1;
+    wxGridBagSizer* GridBagSizer1;
 
-    Create(parent, wxID_ANY, _("XModel Gen"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xModel Gen"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    SetClientSize(wxSize(400,400));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -132,20 +158,38 @@ xModelGenFrame::xModelGenFrame(wxWindow* parent, wxWindowID id)
     SplitterWindow1->SetMinimumPaneSize(10);
     SplitterWindow1->SetSashGravity(0.2);
     Notebook1 = new wxNotebook(SplitterWindow1, ID_NOTEBOOK1, wxPoint(-38,2), wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
-    ListBoxNodes = new wxListBox(Notebook1, ID_LISTBOX_NODES, wxPoint(28,36), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_NODES"));
-    PropertyGrid_Vision = new wxPropertyGrid(Notebook1,ID_PROPERTY_GRID_VISION,wxPoint(72,36),wxDefaultSize,wxPG_DEFAULT_STYLE,_T("ID_PROPERTY_GRID_VISION"));
-    Notebook1->AddPage(ListBoxNodes, _("Nodes"), true);
+    PanelNodes = new wxPanel(Notebook1, ID_PANEL_NODES, wxPoint(21,34), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_NODES"));
+    BoxSizer2 = new wxBoxSizer(wxVERTICAL);
+    ListBoxNodes = new wxListBox(PanelNodes, ID_LISTBOX_NODES, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_NODES"));
+    BoxSizer2->Add(ListBoxNodes, 1, wxALL|wxEXPAND, 5);
+    StaticTextNodes = new wxStaticText(PanelNodes, ID_STATICTEXT_NODES, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_NODES"));
+    BoxSizer2->Add(StaticTextNodes, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonSelect = new wxButton(PanelNodes, ID_BUTTON_SELECT, _("Set Node Template"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT"));
+    BoxSizer2->Add(ButtonSelect, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    PanelNodes->SetSizer(BoxSizer2);
+    BoxSizer2->Fit(PanelNodes);
+    BoxSizer2->SetSizeHints(PanelNodes);
+    PanelManualWiring = new wxPanel(Notebook1, ID_PANEL_MANUAL_WIRING, wxPoint(11,15), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_MANUAL_WIRING"));
+    GridBagSizer1 = new wxGridBagSizer(0, 0);
+    CheckBoxEnableWiring = new wxCheckBox(PanelManualWiring, ID_CHECKBOX_ENABLE_WIRING, _("Enable Manual Wiring"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ENABLE_WIRING"));
+    CheckBoxEnableWiring->SetValue(false);
+    GridBagSizer1->Add(CheckBoxEnableWiring, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText1 = new wxStaticText(PanelManualWiring, ID_STATICTEXT1, _("Node"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    GridBagSizer1->Add(StaticText1, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    SpinCtrlNextNodeNumber = new wxSpinCtrl(PanelManualWiring, ID_SPINCTRL_NEXT_NODE_NUMBER, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 2000, 1, _T("ID_SPINCTRL_NEXT_NODE_NUMBER"));
+    SpinCtrlNextNodeNumber->SetValue(_T("1"));
+    GridBagSizer1->Add(SpinCtrlNextNodeNumber, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    PanelManualWiring->SetSizer(GridBagSizer1);
+    GridBagSizer1->Fit(PanelManualWiring);
+    GridBagSizer1->SetSizeHints(PanelManualWiring);
+    PropertyGrid_Vision = new wxPropertyGrid(Notebook1,ID_PROPERTY_GRID_VISION,wxPoint(72,36),wxDefaultSize,wxPG_SPLITTER_AUTO_CENTER | wxPG_DEFAULT_STYLE,_T("ID_PROPERTY_GRID_VISION"));
+    Notebook1->AddPage(PanelNodes, _("Nodes"), true);
+    Notebook1->AddPage(PanelManualWiring, _("Manual Wiring"), false);
     Notebook1->AddPage(PropertyGrid_Vision, _("Vision Settings"), false);
     PanelPictureView = new CVPictureView(SplitterWindow1, ID_PICTURE_VIEW, wxPoint(195,31), wxSize(100,100), wxTAB_TRAVERSAL, _T("ID_PICTURE_VIEW"));
     SplitterWindow1->SplitVertically(Notebook1, PanelPictureView);
+    SplitterWindow1->SetSashPosition(100);
     FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
-    BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
-    ButtonSelect = new wxButton(this, ID_BUTTON_SELECT, _("Set Node Template"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT"));
-    BoxSizer1->Add(ButtonSelect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    SliderSpacing = new wxSlider(this, ID_SLIDER_SPACING, 4, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_SPACING"));
-    BoxSizer1->Add(SliderSpacing, 1, wxALL|wxEXPAND, 5);
-    BoxSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-    FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
     StatusBar1 = new wxStatusBar(this, ID_STATUSBAR1, 0, _T("ID_STATUSBAR1"));
     int __wxStatusBarWidths_1[1] = { -10 };
@@ -157,8 +201,6 @@ xModelGenFrame::xModelGenFrame(wxWindow* parent, wxWindowID id)
     Menu1 = new wxMenu();
     MenuItem_Load_Picture = new wxMenuItem(Menu1, ID_MNU_LOAD_PICTURE, _("Load Picture"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_Load_Picture);
-    MenuItem_Load_Dxf = new wxMenuItem(Menu1, ID_MNU_LOAD_DXF, _("Load DXF File"), wxEmptyString, wxITEM_NORMAL);
-    Menu1->Append(MenuItem_Load_Dxf);
     MenuItem_Auto_Wire = new wxMenuItem(Menu1, ID_MNU_AUTO_WIRE, _("Start Auto Wire"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_Auto_Wire);
     MenuItem_Save_XModel = new wxMenuItem(Menu1, ID_MNU_SAVE_XMODEL, _("Save xModel"), wxEmptyString, wxITEM_NORMAL);
@@ -174,16 +216,16 @@ xModelGenFrame::xModelGenFrame(wxWindow* parent, wxWindowID id)
     Menu2->Append(MenuItem_Log);
     MenuBar1->Append(Menu2, _("&Help"));
     SetMenuBar(MenuBar1);
-    FlexGridSizer1->Fit(this);
-    FlexGridSizer1->SetSizeHints(this);
+    SetSizer(FlexGridSizer1);
+    Layout();
 
+    Connect(ID_LISTBOX_NODES,wxEVT_COMMAND_LISTBOX_DOUBLECLICKED,(wxObjectEventFunction)&xModelGenFrame::OnListBoxNodesDClick);
+    Connect(ID_BUTTON_SELECT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xModelGenFrame::OnButtonSelectClick);
     PanelPictureView->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&xModelGenFrame::OnPanelPictureViewLeftDown,0,this);
     PanelPictureView->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&xModelGenFrame::OnPanelPictureViewLeftUp,0,this);
     PanelPictureView->Connect(wxEVT_LEFT_DCLICK,(wxObjectEventFunction)&xModelGenFrame::OnPanelPictureViewLeftDClick,0,this);
     PanelPictureView->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&xModelGenFrame::OnPanelPictureViewRightDown,0,this);
-    Connect(ID_BUTTON_SELECT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xModelGenFrame::OnButtonSelectClick);
     Connect(ID_MNU_LOAD_PICTURE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xModelGenFrame::OnMenuItem_Load_PictureSelected);
-    Connect(ID_MNU_LOAD_DXF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xModelGenFrame::OnMenuItem_Load_DxfSelected);
     Connect(ID_MNU_AUTO_WIRE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xModelGenFrame::OnMenuItem_Auto_WireSelected);
     Connect(ID_MNU_SAVE_XMODEL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xModelGenFrame::OnMenuItem_Save_XModelSelected);
     Connect(ID_MNU_QUIT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xModelGenFrame::OnQuit);
@@ -208,14 +250,8 @@ xModelGenFrame::xModelGenFrame(wxWindow* parent, wxWindowID id)
 
     logger_base.debug("Loading...");
 
-    wxConfigBase* config = wxConfigBase::Get();
+    DrawPropertyGrid();
 
-    wxPGProperty* prop = PropertyGrid_Vision->Append( new wxIntProperty( "Match Threshold", "MatchThreshold", config->ReadLong("MatchThreshold", 80) ) );
-    prop->SetAttribute( "Min", 0 );
-    prop->SetAttribute( "Max", 100 );
-    prop->SetEditor( "SpinCtrl" );
-
-    //PropertyGrid_Vision->Append( new wxBoolProperty( "Fill", "BkgFill", false ) )->SetAttribute( "UseCheckbox", 1 );
 
     PropertyGrid_Vision->Connect( wxEVT_PG_CHANGED, (wxObjectEventFunction)&xModelGenFrame::OnPropertyGridChange, 0, this );
     //PropertyGrid_Vision->Connect( wxEVT_PG_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridSelection, 0, this );
@@ -229,6 +265,70 @@ xModelGenFrame::xModelGenFrame(wxWindow* parent, wxWindowID id)
 
 }
 
+
+void xModelGenFrame::DrawPropertyGrid()
+{
+    //PropertyGrid_Vision->Append( new wxBoolProperty( "Fill", "BkgFill", false ) )->SetAttribute( "UseCheckbox", 1 );
+    PropertyGrid_Vision->Freeze();
+    PropertyGrid_Vision->Clear();
+
+    wxConfigBase* config = wxConfigBase::Get();
+
+    wxPGProperty* ms = PropertyGrid_Vision->Append( new wxPropertyCategory( "Match Setting", "MatchSetting" ) );
+
+    wxPGProperty* prop = PropertyGrid_Vision->AppendIn( ms, new wxIntProperty( "Match Threshold", "MatchThreshold", config->ReadLong( "MatchThreshold", 80 ) ) );
+    prop->SetAttribute( "Min", 0 );
+    prop->SetAttribute( "Max", 100 );
+    prop->SetEditor( "SpinCtrl" );
+    prop->SetHelpString( "Percentage Threshold For Template Matching" );
+
+    if( m_tempateImg ) {
+        wxPGProperty* p = PropertyGrid_Vision->AppendIn( 
+            ms, new xlImageProperty( "Template Image",
+            "TemplateImage",
+            "",
+            m_tempateImg.get() ) );
+        p->ChangeFlag( wxPG_PROP_READONLY, true );
+        p->SetHelpString( "Template Image" );
+    }
+
+    prop = PropertyGrid_Vision->AppendIn( ms, new wxIntProperty( "Font Size", "FontSize", config->ReadLong( "FontSize", 8 ) ) );
+    prop->SetAttribute( "Min", 1 );
+    prop->SetAttribute( "Max", 100 );
+    prop->SetEditor( "SpinCtrl" );
+    prop->SetHelpString( "Font Size of Node Labels" );
+
+    prop = PropertyGrid_Vision->AppendIn( ms, new wxIntProperty( "Font Thickness", "FontThickness", config->ReadLong( "FontThickness", 2 ) ) );
+    prop->SetAttribute( "Min", 1 );
+    prop->SetAttribute( "Max", 10 );
+    prop->SetEditor( "SpinCtrl" );
+    prop->SetHelpString( "Doesn't Really do Much" );
+
+    wxPGProperty* es = PropertyGrid_Vision->Append( new wxPropertyCategory( "Export Setting", "ExportSetting" ) );
+
+    prop = PropertyGrid_Vision->AppendIn( es, new wxIntProperty( "Model Width", "ModelWidth", config->ReadLong( "ModelWidth", 100 ) ) );
+    prop->SetAttribute( "Min", 10 );
+    prop->SetAttribute( "Max", 1000 );
+    prop->SetEditor( "SpinCtrl" );
+
+    prop = PropertyGrid_Vision->AppendIn( es, new wxIntProperty( "Model Height", "ModelHeight", config->ReadLong( "ModelHeight", 100 ) ) );
+    prop->SetAttribute( "Min", 10 );
+    prop->SetAttribute( "Max", 1000 );
+    prop->SetEditor( "SpinCtrl" );
+
+    //prop = PropertyGrid_Vision->Append( new wxBoolProperty( "Trim White Space", "TrimWhiteSpace", config->ReadBool( "TrimWhiteSpace", true ) ) );
+    //prop->SetAttribute( "UseCheckbox", true );
+
+    wxPGProperty* aw = PropertyGrid_Vision->Append( new wxPropertyCategory( "Auto Wire Setting", "AutoWireSetting" ) );
+
+    prop = PropertyGrid_Vision->AppendIn( aw, new wxIntProperty( "Max Wiring Jump", "MaxWiringJump", config->ReadLong( "MaxWiringJump", 100 ) ) );
+    prop->SetAttribute( "Min", 1 );
+    prop->SetAttribute( "Max", 10000 );
+    prop->SetEditor( "SpinCtrl" );
+    prop->SetHelpString( "Spacing in Image Pixel Resolution of Acceptable Wire Jumps" );
+
+    PropertyGrid_Vision->Thaw();
+}
 
 xModelGenFrame::~xModelGenFrame()
 {
@@ -388,25 +488,28 @@ void xModelGenFrame::OnMenuItem_Auto_WireSelected(wxCommandEvent& event)
 
 void xModelGenFrame::OnMenuItem_Save_XModelSelected(wxCommandEvent& event)
 {
+    if(!m_model){
+        DisplayError( "No Model Was Loaded", this );
+        return;
+    }
+    if( m_model->GetNodeCount() == 0 ) {
+        DisplayError( "No Nodes Were Generated", this );
+        return;
+    }
+    wxFileDialog dlg( this, "Save xModel File", wxEmptyString, m_model->GetName(), "xModel Files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT );
+
+    if (dlg.ShowModal() == wxID_OK) {
+        wxConfigBase* config = wxConfigBase::Get();
+        int grid_width = config->ReadLong( "ModelWidth", 100 );
+        int grid_height = config->ReadLong( "ModelHeight", 100 );
+        m_model->ExportModel( dlg.GetPath(), grid_width, grid_height);
+    }
 }
 
 void xModelGenFrame::OnListBoxNodesDClick(wxCommandEvent& event)
 {
-}
-
-void xModelGenFrame::OnTreeRClick(wxTreeListEvent& event)
-{
-    wxMenu mnuLayer;
-    mnuLayer.Append(ID_MNU_CLEAR, "Clear");
-    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xModelGenFrame::OnPopup, nullptr, this);
-    PopupMenu(&mnuLayer);
-}
-
-void xModelGenFrame::OnPopup(wxCommandEvent& event)
-{
-    if (event.GetId() == ID_MNU_CLEAR) {
-
-    }
+    ListBoxNodes->GetSelection();
+    PanelPictureView->SetSelection( ListBoxNodes->GetSelection(), true);
 }
 
 void xModelGenFrame::OnClose(wxCloseEvent& event)
@@ -428,11 +531,9 @@ void xModelGenFrame::Load_Dxf_Items( std::string const& filePath )
 
     std::string name = p.filename().replace_extension().string();
 
-    ClearGrid();
+    m_model = std::make_unique< Model >();
 
-    m_model = std::make_unique< model >();
-
-    m_model->setName(name);
+    m_model->SetName(name);
     int minX    = INT32_MAX;
     int minY    = INT32_MAX;
     int maxX    = 0;
@@ -515,8 +616,8 @@ void xModelGenFrame::Load_Dxf_Items( std::string const& filePath )
             maxY = newY + 1;
         }
 
-        node newNode(newX, newY );
-        m_model->addNode( newNode );
+        //Node newNode(newX, newY );
+        //m_model->AddNode( newNode );
     }
 
     for( auto const& l : m_dxf_data->lines ) {
@@ -531,71 +632,7 @@ void xModelGenFrame::Load_Dxf_Items( std::string const& filePath )
 
     minX = std::max( minX, 0 );
     minY = std::max( minY, 0 );
-    m_model->setBoundingBox( minX, maxX, minY, maxY );
-
-    DrawGrid();
-}
-
-void xModelGenFrame::DrawGrid()
-{
-    int minsx   = INT32_MAX;
-    int minsy   = INT32_MAX;
-    int maxsx   = -1;
-    int maxsy   = -1;
-
-    /*for( auto const& node : m_model->GetNodes() ) {
-        int Sbufx   = node.gridX;
-        int Sbufy = node.gridY;
-        if( Sbufx < minsx ) {
-            minsx = Sbufx;
-        }
-        if( Sbufx > maxsx ) {
-            maxsx = Sbufx;
-        }
-        if( Sbufy < minsy ) {
-            minsy = Sbufy;
-        }
-        if( Sbufy > maxsy ) {
-            maxsy = Sbufy;
-        }
-    }
-
-    int minx  = std::floor( minsx );
-    int miny  = std::floor( minsy );
-    int maxx  = std::ceil( maxsx );
-    int maxy  = std::ceil( maxsy );
-    int sizex = maxx - minx;
-    int sizey = maxy - miny;
-
-    Grid_Nodes->AppendCols( sizex+1 );
-    Grid_Nodes->AppendRows( sizey+1 );
-
-    for( auto const& node : m_model->GetNodes() )
-    {
-        std::string value = "X";
-        if( node.isWired() ) {
-            value = std::to_string(node.nodeNumber);
-        }
-
-        Grid_Nodes->SetCellValue( maxy - node.gridY, node.gridX - minx, value );
-
-        ListBoxNodes->Append( node.getText() );
-    }
-    Grid_Nodes->Refresh();*/
-}
-
-void xModelGenFrame::ClearGrid()
-{
-    ListBoxNodes->Clear();
-    /*Grid_Nodes->ClearGrid();
-    int deltaCols = Grid_Nodes->GetNumberCols();
-    int deltaRows = Grid_Nodes->GetNumberRows();
-    if( deltaCols < 0 ) {
-        Grid_Nodes->DeleteCols( 0, deltaCols );
-    }
-    if( deltaRows < 0 ) {
-        Grid_Nodes->DeleteRows( 0, deltaRows );
-    }*/
+    //m_model->SetBoundingBox( minX, maxX, minY, maxY );
 }
 
 void xModelGenFrame::OnMenuItem_Load_PictureSelected(wxCommandEvent& event)
@@ -616,23 +653,37 @@ void xModelGenFrame::OnMenuItem_Load_PictureSelected(wxCommandEvent& event)
     //"(*.bmp;*.jpeg;*.jpg;*.png;*.webp;*.pbm;*.tiff;*.tif)|*.bmp;*.jpeg;*.jpg;*.png;*.webp;*.pbm;*.tiff;*.tif"
     wxFileDialog dlg( this, "Load Picture", wxEmptyString, wxEmptyString, "Image Files (*.bmp;*.jpeg;*.jpg;*.png;*.webp;*.pbm;*.tiff;*.tif)|*.bmp;*.jpeg;*.jpg;*.png;*.webp;*.pbm;*.tiff;*.tif|All Files (*.)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST );
     if( dlg.ShowModal() == wxID_OK ) {
-        PanelPictureView->LoadPicture( dlg.GetPath().ToStdString() );
+        std::filesystem::path p = dlg.GetPath().ToStdString();
+
+        std::string name = p.filename().replace_extension().string();
+
+        m_model = std::make_unique< Model >();
+
+        m_model->SetName( name );
+        PanelPictureView->LoadPicture( dlg.GetPath().ToStdString(), m_model.get() );
     }
 }
 
 void xModelGenFrame::OnButtonSelectClick(wxCommandEvent& event)
 {
     m_Selecting = true;
-
 }
 
 void xModelGenFrame::OnPanelPictureViewLeftDown(wxMouseEvent& event)
 {
-    if( !m_Selecting ) {
+    if( m_Selecting ) {
+        wxPoint start = event.GetPosition();
+        m_startPoint  = start;
         return;
     }
-    wxPoint start = event.GetPosition();
-    m_startPoint  = start;
+
+    if (CheckBoxEnableWiring->IsChecked()) {
+        int number = SpinCtrlNextNodeNumber->GetValue();
+        if(PanelPictureView->SetNodeNumber(event.GetPosition(), number)) {
+            SpinCtrlNextNodeNumber->SetValue(++number);
+            RefreshNodes();
+        }
+    }
 }
 
 void xModelGenFrame::OnPanelPictureViewLeftUp(wxMouseEvent& event)
@@ -640,16 +691,54 @@ void xModelGenFrame::OnPanelPictureViewLeftUp(wxMouseEvent& event)
     if( !m_Selecting ) {
         return;
     }
-    PanelPictureView->SaveTemplate( m_startPoint, event.GetPosition() );
+    if( PanelPictureView->SaveTemplate( m_startPoint, event.GetPosition() ) ) {
+        if( auto str = PanelPictureView->GetTemplate( ) ) {
+            m_tempateImg = std::make_unique< wxImage >( *str );
+            DrawPropertyGrid();
+        }
+        RefreshNodes();
+    }
     m_Selecting = false;
 }
 
 void xModelGenFrame::OnPanelPictureViewLeftDClick(wxMouseEvent& event)
 {
+    //set Node Number
+    int number = SpinCtrlNextNodeNumber->GetValue();
+    if(PanelPictureView->SetNodeNumber(event.GetPosition(), number)) {
+        SpinCtrlNextNodeNumber->SetValue(++number);
+        RefreshNodes();
+    }
 }
 
 void xModelGenFrame::OnPanelPictureViewRightDown(wxMouseEvent& event)
 {
+    wxMenu mnuLayer;
+    mnuLayer.Append(ID_MNU_ADD_NODE, "Add Node");
+    mnuLayer.Append(ID_MNU_CLEAR_SELECTION, "Clear Selection");
+    mnuLayer.Append(ID_MNU_CLEAR, "Clear Wiring");
+    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xModelGenFrame::OnPopup, nullptr, this);
+    PopupMenu(&mnuLayer);
+}
+
+void xModelGenFrame::OnPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_MNU_ADD_NODE) {
+        if(m_model) {
+            //TODO
+            RefreshNodes();
+        }
+    }
+    else if (event.GetId() == ID_MNU_CLEAR_SELECTION) {
+            PanelPictureView->ClearSelection(true);
+    }
+    else if (event.GetId() == ID_MNU_CLEAR) {
+        if(m_model) {
+            m_model->ClearWiring();
+            PanelPictureView->DrawPicture();
+            RefreshNodes();
+        }
+    }
 }
 
 void xModelGenFrame::OnPropertyGridChange( wxPropertyGridEvent& event )
@@ -659,6 +748,36 @@ void xModelGenFrame::OnPropertyGridChange( wxPropertyGridEvent& event )
     if( name == "MatchThreshold" ) {
         wxConfigBase* config = wxConfigBase::Get();
         config->Write( "MatchThreshold", event.GetValue().GetLong() );
-        
+    }else if( name == "FontSize" ) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write( "FontSize", event.GetValue().GetLong() );
+        PanelPictureView->DrawPicture();
+    }else if( name == "FontThickness" ) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write( "FontThickness", event.GetValue().GetLong() );
+        PanelPictureView->DrawPicture();
+    } else if( name == "ModelWidth" ) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write( "ModelWidth", event.GetValue().GetLong() );
+    } else if( name == "ModelHeight" ) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write( "ModelHeight", event.GetValue().GetLong() );
+    } else if( name == "MaxWiringJump" ) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write( "MaxWiringJump", event.GetValue().GetLong() );
+    } else if( name == "TrimWhiteSpace" ) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write( "TrimWhiteSpace", event.GetValue().GetBool() );
     }
+}
+
+void xModelGenFrame::RefreshNodes()
+{
+    ListBoxNodes->Clear();
+
+    for( auto const& node : m_model->GetNodes() ) {
+        ListBoxNodes->Append( node.GetText() );
+    }
+
+    StaticTextNodes->SetLabelText( wxString::Format( "%zu Nodes Found", m_model->GetNodeCount() ) );
 }

@@ -10,9 +10,9 @@
 
 #include <memory>
 #include <vector>
+#include <optional>
 
-// external classes
-class xModelGenFrame;
+class Model;
 
 class CVPictureView : public wxWindow
 {
@@ -20,18 +20,28 @@ public:
 	CVPictureView( wxWindow* frame, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, wxString const& name );
     virtual ~CVPictureView() = default;
 
-    void LoadPicture(std::string const& file);
+    void LoadPicture( std::string const& file, Model* model );
 
 	void DrawPicture();
 
-    void SaveTemplate(wxPoint start, wxPoint end);
+    bool SaveTemplate(wxPoint start, wxPoint end);
 
-    void FindTemplateInPic();
+	[[nodiscard]] std::optional< wxImage > GetTemplate();
+
+    bool FindTemplateInPic();
+
+	bool SetNodeNumber( wxPoint point, int nodeNum );
+
+	void SetSelection(int selection, bool redraw = false);
+
+	void ClearSelection(bool redraw = false){ SetSelection(-1, redraw); }
+
+	[[nodiscard]] wxPoint ScaleXY( wxPoint const& point ) const;
 
 	void Draw( wxDC& dc );
 
 private:
-    xModelGenFrame* m_mainFrame;
+    Model* m_model;
 
 	wxImage m_image;
     std::string m_filePath;
@@ -42,6 +52,8 @@ private:
 	int m_nWidth;
 	int m_nHeight;
     double m_scale{ 1.0 };
+
+	int m_selected{-1};
 
 	wxMutex  imageMutex_;
 

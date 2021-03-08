@@ -11,17 +11,17 @@
  * License: https://github.com/smeighan/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "node.h"
+#include "Node.h"
 
 #include <cmath>
 
 namespace model_utils
 {
-    double getDistance(double x1, double y1, double x2, double y2)
+    double GetDistance(double x1, double y1, double x2, double y2)
     {
         return sqrt(pow (x2 - x1, 2) + pow (y2 - y1, 2));
     }
-    double getDistance(node first, node second)
+    double GetDistance(node first, node second)
     {
         return getDistance(first.gridX, first.gridY, second.gridX, second.gridY);
     }

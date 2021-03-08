@@ -21,28 +21,31 @@
 
 #endif
 
+#include "Model.h"
+#include "dxf/dxf_data.h"
+
 //(*Headers(xModelGenFrame)
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/frame.h>
+#include <wx/gbsizer.h>
 #include <wx/listbox.h>
 #include <wx/menu.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/sizer.h>
-#include <wx/slider.h>
+#include <wx/spinctrl.h>
 #include <wx/splitter.h>
+#include <wx/stattext.h>
 #include <wx/statusbr.h>
 //*)
 
-#include "dxf/dxf_data.h"
-#include "model.h"
-
-#include <list>
 #include <wx/socket.h>
 #include <wx/treelist.h>
 #include <wx/file.h>
 
+#include <list>
 #include <memory>
 
 class CVPictureView;
@@ -54,10 +57,10 @@ class xModelGenFrame : public wxFrame
 
 public:
         xModelGenFrame(wxWindow* parent, wxWindowID id = -1);
-        virtual ~xModelGenFrame();
+
+    virtual ~xModelGenFrame();
         void SendReport(const wxString &loc, wxDebugReportCompress &report);
         void CreateDebugReport(wxDebugReportCompress* report);
-
 private:
 
         //(*Handlers(xModelGenFrame)
@@ -79,31 +82,37 @@ private:
         void OnPanelPictureViewRightDown(wxMouseEvent& event);
         //*)
 
-        void OnTreeRClick(wxTreeListEvent& event);
         void OnPopup(wxCommandEvent& event);
         void OnPropertyGridChange( wxPropertyGridEvent& event );
 
         void Load_Dxf_Items( std::string const& filePath );
-        void DrawGrid();
-        void ClearGrid();
+
+        void DrawPropertyGrid();
+        void RefreshNodes();
 
         std::unique_ptr<dxf_data> m_dxf_data;
-        std::unique_ptr< model > m_model;
+        std::unique_ptr< Model > m_model;
+
+        std::unique_ptr< wxImage > m_tempateImg;
 
         bool m_Selecting{ false };
         wxPoint m_startPoint;
 
         //(*Identifiers(xModelGenFrame)
         static const long ID_LISTBOX_NODES;
+        static const long ID_STATICTEXT_NODES;
+        static const long ID_BUTTON_SELECT;
+        static const long ID_PANEL_NODES;
+        static const long ID_CHECKBOX_ENABLE_WIRING;
+        static const long ID_STATICTEXT1;
+        static const long ID_SPINCTRL_NEXT_NODE_NUMBER;
+        static const long ID_PANEL_MANUAL_WIRING;
         static const long ID_PROPERTY_GRID_VISION;
         static const long ID_NOTEBOOK1;
         static const long ID_PICTURE_VIEW;
         static const long ID_SPLITTERWINDOW1;
-        static const long ID_BUTTON_SELECT;
-        static const long ID_SLIDER_SPACING;
         static const long ID_STATUSBAR1;
         static const long ID_MNU_LOAD_PICTURE;
-        static const long ID_MNU_LOAD_DXF;
         static const long ID_MNU_AUTO_WIRE;
         static const long ID_MNU_SAVE_XMODEL;
         static const long ID_MNU_QUIT;
@@ -112,25 +121,31 @@ private:
         //*)
 
         static const long ID_MNU_CLEAR;
+        static const long ID_MNU_CLEAR_SELECTION;
+        static const long ID_MNU_ADD_NODE;
 
         //(*Declarations(xModelGenFrame)
         CVPictureView* PanelPictureView;
         wxButton* ButtonSelect;
+        wxCheckBox* CheckBoxEnableWiring;
         wxListBox* ListBoxNodes;
         wxMenu* Menu1;
         wxMenu* Menu2;
         wxMenuBar* MenuBar1;
         wxMenuItem* MenuItem_About;
         wxMenuItem* MenuItem_Auto_Wire;
-        wxMenuItem* MenuItem_Load_Dxf;
         wxMenuItem* MenuItem_Load_Picture;
         wxMenuItem* MenuItem_Log;
         wxMenuItem* MenuItem_Quit;
         wxMenuItem* MenuItem_Save_XModel;
         wxNotebook* Notebook1;
+        wxPanel* PanelManualWiring;
+        wxPanel* PanelNodes;
         wxPropertyGrid* PropertyGrid_Vision;
-        wxSlider* SliderSpacing;
+        wxSpinCtrl* SpinCtrlNextNodeNumber;
         wxSplitterWindow* SplitterWindow1;
+        wxStaticText* StaticText1;
+        wxStaticText* StaticTextNodes;
         wxStatusBar* StatusBar1;
         //*)
 
