@@ -21,9 +21,9 @@ namespace model_utils
     {
         return sqrt(pow (x2 - x1, 2) + pow (y2 - y1, 2));
     }
-    double GetDistance(node first, node second)
+    double GetDistance(Node first, Node second)
     {
-        return getDistance(first.gridX, first.gridY, second.gridX, second.gridY);
+        return GetDistance(first.X, first.Y, second.X, second.Y);
     }
 }
 

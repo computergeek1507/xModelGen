@@ -9,6 +9,7 @@
 
 #include "xModelGenMain.h"
 #include "CVPictureView.h"
+#include "AutoWire.h"
 
 #include "dxf/dxf_reader.h"
 
@@ -484,6 +485,9 @@ void xModelGenFrame::OnMenuItem_Load_DxfSelected(wxCommandEvent& event)
 
 void xModelGenFrame::OnMenuItem_Auto_WireSelected(wxCommandEvent& event)
 {
+    wxConfigBase* config = wxConfigBase::Get();
+    int const MaxWiringJump = config->ReadLong( "MaxWiringJump", 100 );
+    StartAutoWire( MaxWiringJump );
 }
 
 void xModelGenFrame::OnMenuItem_Save_XModelSelected(wxCommandEvent& event)
@@ -780,4 +784,35 @@ void xModelGenFrame::RefreshNodes()
     }
 
     StaticTextNodes->SetLabelText( wxString::Format( "%zu Nodes Found", m_model->GetNodeCount() ) );
+}
+
+void xModelGenFrame::StartAutoWire( int wireGap )
+{
+    AutoWire sort( m_model.get(), wireGap );
+
+    if( auto node = m_model->FindNodeNumber( 1 ); node ) {
+        m_model->ClearWiring();
+
+        sort.WireModel( node->get().X, node->get().Y );
+        bool worked = sort.GetWorked();
+
+        if( worked ) {
+            int order = 1;
+            for( int index : sort.GetIndexes() ) {
+                m_model->GetNode( index )->get().NodeNumber = order;
+                order++;
+            }
+
+        } else {
+            if( auto node2 = m_model->FindNode( node->get().X, node->get().Y ); node2 ) {
+                node2->get().NodeNumber = 1;
+            }
+        }
+        DisplayInfo( worked ? "Worked!" : "Didn't Work:(", this );
+    } else {
+        DisplayError( "No Starting Node Set", this );
+    
+    }
+    PanelPictureView->DrawPicture();
+    RefreshNodes();
 }

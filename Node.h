@@ -15,15 +15,13 @@
 
 struct Node 
 {
-    Node()
-    { }
+    Node() = default;
 
     Node(int x, int y ) :
         X( x ), Y( y )
     {}
 
     inline bool operator==( const Node& lhs) { return lhs.X == X && lhs.Y == Y; }
-
 
     int X{-1};
     int Y{-1};

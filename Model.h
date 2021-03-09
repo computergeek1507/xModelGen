@@ -77,6 +77,16 @@ public:
         return std::nullopt;
     }
 
+    [[nodiscard]] std::optional< std::reference_wrapper< Node > > FindNodeNumber( int nodeNumber )
+    {
+        if( auto found{ std::find_if( m_nodes.begin(), m_nodes.end(), [ &nodeNumber ]( Node const& n ) { return n.NodeNumber == nodeNumber; } ) };
+            found != m_nodes.end() ) {
+            return *found;
+        }
+
+        return std::nullopt;
+    }
+
     [[nodiscard]] int FindNodeIndex( int x, int y ) const
     {
         int i = 0;

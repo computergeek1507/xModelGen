@@ -87,6 +87,8 @@ private:
 
         void Load_Dxf_Items( std::string const& filePath );
 
+        void StartAutoWire( int wireGap );
+
         void DrawPropertyGrid();
         void RefreshNodes();
 

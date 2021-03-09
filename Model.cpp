@@ -52,14 +52,10 @@ void Model::SetBoundingBox( int minX, int maxX, int minY, int maxY )
 
 void Model::ScaleNodesToGrid( int grid_width, int grid_heigth )
 {
-    //auto const width  = ( maxX - minX ) + 1;
-    //auto const heigth = ( maxY - minY ) + 1;
-
     int minX = INT_FAST32_MAX;
     int maxX = 0;
     int minY = INT_FAST32_MAX;
     int maxY = 0;
-    //m_sizeY = heigth;
 
     for( auto const& node : m_nodes ) {
         minX = std::min(node.X, minX);
@@ -70,14 +66,14 @@ void Model::ScaleNodesToGrid( int grid_width, int grid_heigth )
 
     int width = std::abs(maxX - minX);
     int height = std::abs(maxY - minY);
-    double scale_x = width/ grid_width;
-    double scale_y = width/ grid_heigth;
+    double scale_x = (double)width / grid_width;
+    double scale_y = (double)width / grid_heigth;
 
     for( auto & node : m_nodes ) {
-        int new_x = (node.X - minX)/scale_x;
-        int new_y = (node.Y - minY)/scale_y;
+        int new_x  = (double)( node.X - minX ) / scale_x;
+        int new_y  = (double)( node.Y - minY ) / scale_y;
         node.GridX = new_x;
-        node.GridY = grid_heigth - new_y;//screen Y is Top Most, so Flip?
+        node.GridY = /*grid_heigth -*/ new_y;//screen Y is Top Most, so Flip?
     }
 }
 
